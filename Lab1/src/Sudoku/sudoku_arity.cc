@@ -6,17 +6,17 @@
 
 #include <algorithm>
 
-#include "sudoku_basic.h"
+#include "sudoku_arity.h"
 
 using namespace std;
 
-Basic::Basic(int inout[81]): board(inout)
+Arity::Arity(int inout[81]): board(inout)
 {
 	init_neighbors();
 	find_spaces();
 }
 
-void Basic::init_neighbors()
+void Arity::init_neighbors()
 {
   for (int row = 0; row < ROW; ++row) {
     for (int col = 0; col < COL; ++col) {
@@ -30,7 +30,7 @@ void Basic::init_neighbors()
   }
 }
 
-void Basic::mark_adjacent(bool adjacent[ROW][COL], int row, int col)
+void Arity::mark_adjacent(bool adjacent[ROW][COL], int row, int col)
 {
   for (int i = 0; i < NUM; ++i) {
     adjacent[row][i] = true;
@@ -49,7 +49,7 @@ void Basic::mark_adjacent(bool adjacent[ROW][COL], int row, int col)
   adjacent[top+2][left+2] = true;
 }
 
-void Basic::collect_neighbors(bool adjacent[ROW][COL], int row, int col, int myneighbors[NEIGHBOR])
+void Arity::collect_neighbors(bool adjacent[ROW][COL], int row, int col, int myneighbors[NEIGHBOR])
 {
   int n = 0;
   for (int y = 0; y < ROW; ++y) {
@@ -63,7 +63,7 @@ void Basic::collect_neighbors(bool adjacent[ROW][COL], int row, int col, int myn
   assert(n == NEIGHBOR);
 }
 
-void Basic::find_spaces()
+void Arity::find_spaces()
 {
   nspaces = 0;
   for (int cell = 0; cell < N; ++cell) {
@@ -72,7 +72,7 @@ void Basic::find_spaces()
   }
 }
 
-bool Basic::available(int guess, int cell)
+bool Arity::available(int guess, int cell)
 {
   for (int i = 0; i < NEIGHBOR; ++i) {
     int neighbor = neighbors[cell][i];
@@ -83,13 +83,42 @@ bool Basic::available(int guess, int cell)
   return true;
 }
 
-bool Basic::solve(int which_space)
+int Arity::arity(int cell)
+{
+  bool occupied[10] = {false};
+  for (int i = 0; i < NEIGHBOR; ++i) {
+    int neighbor = neighbors[cell][i];
+    occupied[board[neighbor]] = true;
+  }
+  return std::count(occupied+1, occupied+10, false);
+}
+
+void Arity::find_min_arity(int space)
+{
+  int cell = spaces[space];
+  int min_space = space;
+  int min_arity = arity(cell);
+
+  for (int sp = space+1; sp < nspaces && min_arity > 1; ++sp) {
+    int cur_arity = arity(spaces[sp]);
+    if (cur_arity < min_arity) {
+      min_arity = cur_arity;
+      min_space = sp;
+    }
+  }
+
+  if (space != min_space) {
+    std::swap(spaces[min_space], spaces[space]);
+  }
+}
+
+bool Arity::solve(int which_space)
 {
   if (which_space >= nspaces) {
     return true;
   }
 
-  // find_min_arity(which_space);
+  find_min_arity(which_space);
   int cell = spaces[which_space];
 
   for (int guess = 1; guess <= NUM; ++guess) {
@@ -111,7 +140,7 @@ bool Basic::solve(int which_space)
   return false;
 }
 
-bool Basic::solved()
+bool Arity::solved()
 {
   for (int row = 0; row < ROW; ++row) {
     // check row

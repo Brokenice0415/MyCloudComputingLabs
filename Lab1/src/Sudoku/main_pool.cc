@@ -7,7 +7,7 @@
 #include <pthread.h>
 
 #include "pool.h"
-#include "sudoku_basic.h"
+#include "sudoku_arity.h"
 
 pthread_mutex_t m;
 pthread_mutex_t solved_m;
@@ -35,13 +35,13 @@ void *work(void* args) {
 	}
 	pthread_mutex_unlock(&m);
 	
-	Basic b(p);
+	Arity a(p);
 	
-	if (b.solve(0)) {
+	if (a.solve(0)) {
 		pthread_mutex_lock(&solved_m);
-		++total_solved;
+		total_solved += 1;
 		pthread_mutex_unlock(&solved_m);
-		if (!b.solved()){
+		if (!a.solved()){
 		  	assert(0);
 		}
 	}

@@ -4,7 +4,7 @@
 #include <string.h>
 #include <sys/time.h>
 
-#include "sudoku_basic.h"
+#include "sudoku_arity.h"
 
 int total_solved = 0;
 int total = 0;
@@ -37,11 +37,11 @@ int main(int argc, char* argv[])
 				assert(0 <= p[i] && p[i] <= NUM);
 			}
 			
-			Basic b(p);
+			Arity a(p);
 			
-			if (b.solve(0)) {
+			if (a.solve(0)) {
 				++total_solved;
-				if (!b.solved()){
+				if (!a.solved()){
 				  	assert(0);
 				}
 			}
