@@ -10,6 +10,11 @@ using namespace std;
 enum { ROW=9, COL=9, N = 81, NEIGHBOR = 20 };
 const int NUM = 9;
 
+struct puzzle_t{
+	char name[100];
+	char p[128];
+};
+
 class Arity
 {
 	private:
@@ -32,6 +37,8 @@ class Arity
     
     bool solve(int white_space);
     bool solved();
+    
+    puzzle_t* get_result();
 };
 
 #endif

@@ -186,3 +186,11 @@ bool Arity::solved()
   }
   return true;
 }
+
+puzzle_t* Arity::get_result(){
+	puzzle_t *puzzle = (puzzle_t *)malloc(sizeof(puzzle_t));
+	for(int i = 0; i < N; i ++) {
+		puzzle->p[i] = '0' + board[i];
+	}
+	return puzzle;
+}
