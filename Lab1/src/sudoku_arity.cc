@@ -192,5 +192,6 @@ puzzle_t* Arity::get_result(){
 	for(int i = 0; i < N; i ++) {
 		puzzle->p[i] = '0' + board[i];
 	}
+	puzzle->p[81] = 0;
 	return puzzle;
 }

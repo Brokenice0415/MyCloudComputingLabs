@@ -85,7 +85,6 @@ admin_thread(void *threadpool) {
 /* create threadpool */
 threadpool_t *
 threadpool_create(int min_thr_num, int max_thr_num, int queue_max_size) {
-	int i;
 	threadpool_t *pool = NULL;
 	do {
 		/* malloc for TM */

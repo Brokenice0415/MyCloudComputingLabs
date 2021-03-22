@@ -3,26 +3,27 @@
 #include <stdio.h>
 #include <string.h>
 
-
 #include "sudoku_arity.h"
-#include "thread.h"
+#include "sthread.h"
 
 using namespace std;
 
 void init_(){
-	sem_init(&total_guard, 0, 1);
-	sem_init(&solve_guard, 0, 1);
+	sem_init(&total_guard, 0, 0);
 	sem_init(&puzzle_guard, 0, 0);
 	sem_init(&result_guard, 0, 0);
-	sem_init(&can_save, 0, 1);
+	total = 0;
+	sequence = 0;
 }
 
 void *read(void* argv) {
+
+	char *filename = (char*)argv;
 	
-	FILE* fp = fopen((char*)argv, "r");
-	  
-  	puzzle_t* puzzle = (puzzle_t*)malloc(sizeof(puzzle_t));
-  
+	puzzle_t* puzzle = (puzzle_t*)malloc(sizeof(puzzle_t));
+	
+	FILE* fp = fopen(filename, "r");
+
 	while (fgets(puzzle->p, sizeof(char)*128, fp) != NULL) {
 		
 		if (strlen(puzzle->p) >= N) {
@@ -30,10 +31,12 @@ void *read(void* argv) {
 			threadpool_add_task(thp, work, (void *)puzzle);
 			sem_wait(&puzzle_guard);
 			
+			//waiting for thread-work to notify
 			sem_wait(&total_guard);
 			total += 1;
-			sem_post(&total_guard);
+
 		}
+		
 	}
 	
 	fclose(fp);
@@ -51,16 +54,12 @@ void *work(void* args) {
 		p[i] = puzzle->p[i] - '0';
 		assert(0 <= p[i] && p[i] <= NUM);
 	}
-
+	
 	sem_post(&puzzle_guard);
 	
 	Arity a(p);
 	
 	if (a.solve(0)) {
-	
-		sem_wait(&solve_guard);
-		total_solved += 1;
-		sem_post(&solve_guard);
 		
 		if (!a.solved()){
 		  	assert(0);
@@ -68,16 +67,23 @@ void *work(void* args) {
 		
 		puzzle_t *result = a.get_result();
 		
-		/*
-		threadpool_add_task(thp, save, (void *)(result));
-		sem_wait(&result_guard);
-		*/
+		//wait until this' sequence
+		unique_lock<mutex> lock(m);
+		cv.wait(lock, [&](){return total == sequence;});
 		
-		FILE *fp = fopen("solved", "a+");
+		//notify thread-read
+		sem_post(&total_guard);
+		
+		sequence += 1;
+		
+
+		FILE *fp = fopen(output, "a+");
 	
-		fprintf(fp, "%s\n", result->p);
+		fprintf(fp, "%s\r\n", result->p);
 		
 		fclose(fp);
+		
+		cv.notify_all();
 		
 		free(result);
 		
@@ -85,24 +91,3 @@ void *work(void* args) {
 	
 	return NULL;
 }
-
-/*
-void *save(void* args) {
-	
-	char result[82];
-	memcpy(result, ((puzzle_t*)args)->p, sizeof(result));
-
-	sem_post(&result_guard);
-	
-	result[81] = 0;
-	
-	FILE *fp = fopen("solved", "a+");
-	
-	fprintf(fp, "%s\n", result);
-	
-	fclose(fp);
-	
-	return NULL;
-	
-}
-*/
