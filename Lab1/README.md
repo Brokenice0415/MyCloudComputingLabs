@@ -44,3 +44,23 @@ Then you will get `sudoku_solve` by which you can solve sudoku problems.
 
 Then you would get your result in file `solved` , in which all your need would be placed **in the same order** as which you have typed in.
 
+**Modified 2021 Mar !**
+
+The sudoku results would be output **on Shell** instead of the file `solved` .
+
+Provided that you insist to get sudoku results in file `solved`, locate code in `src/sthread.cc` line 79
+
+```c++
+
+	FILE *fp = fopen(output, "a+");
+
+	fprintf(fp, "%s\r\n", result->p);
+	
+	fclose(fp);
+	
+	/*
+	printf("%s\r\n", result->p);		//annotate this line and disannotate lines above
+	*/
+
+```
+Then you can run `make` again to recompile all codes.

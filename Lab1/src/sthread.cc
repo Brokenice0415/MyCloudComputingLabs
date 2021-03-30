@@ -76,12 +76,14 @@ void *work(void* args) {
 		
 		sequence += 1;
 		
-
+		/*
 		FILE *fp = fopen(output, "a+");
 	
 		fprintf(fp, "%s\r\n", result->p);
 		
 		fclose(fp);
+		*/
+		printf("%s\r\n", result->p);
 		
 		cv.notify_all();
 		
