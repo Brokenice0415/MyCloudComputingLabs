@@ -20,27 +20,17 @@ int main(int argc, char* argv[])
 	
 	init_();
 	
-	char filename[100][100];
-	int i = 0;
+	char filename[100];
 	
-	while(scanf("%s", filename[i]) != EOF){
+	while(scanf("%s", filename) != EOF){
 	
-		threadpool_add_task(thp, read, (void*)filename[i++]);
+		threadpool_add_task(thp, read, (void*)filename);
 		
 		threadpool_join(thp);
-	}
-
-	char puzzle[128];
-	for(int j = 0; j < i; j ++) {
-		FILE* fp = fopen(filename[j], "r");
-		while(fgets(puzzle, sizeof(char)*128, fp) != NULL) {
-			printf("%s", puzzle);
-		}
-		fclose(fp);
+		
 	}
 	
 	threadpool_destroy(thp);
 
 	return 0;
 }
-

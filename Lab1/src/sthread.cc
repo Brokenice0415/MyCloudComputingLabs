@@ -9,53 +9,67 @@
 using namespace std;
 
 void init_(){
-	sem_init(&total_guard, 0, 0);
-	sem_init(&puzzle_guard, 0, 0);
-	sem_init(&result_guard, 0, 0);
-	total = 0;
-	sequence = 0;
+	sem_init(&work_guard, 0, 0);
+	sem_init(&file_guard, 0, 1);
 }
 
 void *read(void* argv) {
 
 	char *filename = (char*)argv;
 	
-	puzzle_t* puzzle = (puzzle_t*)malloc(sizeof(puzzle_t));
+	file_t *f = (file_t*)malloc(sizeof(file_t));
 	
-	FILE* fp = fopen(filename, "r");
+	int i = 0;
+	while(filename[i]!='\0'){
+		f->name[i] = filename[i];
+		i++;
+	}
+	f->name[i] = '\0';
+	
+	char tmp[128];
+	
+	FILE* fp = fopen(filename, "r+");
+	
+	f->pos = ftell(fp);
 
-	while (fgets(puzzle->p, sizeof(char)*128, fp) != NULL) {
-		
-		if (strlen(puzzle->p) >= N) {
-					
-			threadpool_add_task(thp, work, (void *)puzzle);
-			sem_wait(&puzzle_guard);
+	while (fgets(tmp, sizeof(char)*128, fp) != NULL){
 			
-			//waiting for thread-work to notify
-			sem_wait(&total_guard);
-			total += 1;
-
-		}
+		threadpool_add_task(thp, work, (void *)f);
+		sem_wait(&work_guard);
+		f->pos = ftell(fp);
 		
 	}
 	
 	fclose(fp);
 	
-	free(puzzle);
+	free(f);
 	
 	return NULL;
 }
 
 void *work(void* args) {
+
+	file_t *f = (file_t*)args;
 	
-	puzzle_t* puzzle = (puzzle_t*)args;
+	FILE* fp = fopen(f->name, "r+");
+	
+	int pos = f->pos;
+	
+	sem_post(&work_guard);
+	
+	char puzzle[128];
+	
+	sem_wait(&file_guard);
+	fseek(fp, pos, 0);
+	assert(fgets(puzzle, sizeof(char)*128, fp) != NULL);
+	sem_post(&file_guard);
+
 	int p[N];
 	for(int i = 0; i < N; i++) {
-		p[i] = puzzle->p[i] - '0';
+		p[i] = puzzle[i] - '0';
 		assert(0 <= p[i] && p[i] <= NUM);
 	}
 	
-	sem_post(&puzzle_guard);
 	
 	Arity a(p);
 	
@@ -67,25 +81,15 @@ void *work(void* args) {
 		
 		puzzle_t *result = a.get_result();
 		
-		//wait until this' sequence
-		unique_lock<mutex> lock(m);
-		cv.wait(lock, [&](){return total == sequence;});
+		sem_wait(&file_guard);
+		//back to read position
+		fseek(fp, pos, 0);
 		
-		//notify thread-read
-		sem_post(&total_guard);
-		
-		sequence += 1;
-		
-		/*
-		FILE *fp = fopen(output, "a+");
-	
-		fprintf(fp, "%s\r\n", result->p);
+		fprintf(fp, "%s\r", result->p);
+		sem_post(&file_guard);
 		
 		fclose(fp);
-		*/
-		printf("%s\r\n", result->p);
-		
-		cv.notify_all();
+
 		
 		free(result);
 		

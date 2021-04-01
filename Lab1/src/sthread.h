@@ -5,26 +5,16 @@
 #include <semaphore.h>
 
 #include <thread>
-#include <mutex>
-#include <condition_variable>
 
 #include "pool.h"
 
 extern threadpool_t *thp;
 
-static sem_t total_guard, puzzle_guard, result_guard;
-static std::condition_variable cv;
-static std::mutex m;
-
-static int total;
-static int sequence;
-
-static char output[100] = "solved";
+static sem_t work_guard, file_guard;
 
 void init_();
 
 void *read(void *args);
 void *work(void *args);
-void *save(void *args);
 
 #endif

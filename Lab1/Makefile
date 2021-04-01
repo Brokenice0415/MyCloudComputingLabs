@@ -11,4 +11,3 @@ sudoku_solve: $(CXXSRC)*.cc
 .PHONY: clean
 clean:
 	rm -rf ./sudoku_solve
-	rm -rf ./solved

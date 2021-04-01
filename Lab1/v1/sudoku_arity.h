@@ -11,12 +11,8 @@ enum { ROW=9, COL=9, N = 81, NEIGHBOR = 20 };
 const int NUM = 9;
 
 struct puzzle_t{
-	char p[128];
-};
-
-struct file_t{
-	int pos;
 	char name[100];
+	char p[128];
 };
 
 class Arity
