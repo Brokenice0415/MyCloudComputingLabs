@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "sudoku.h"
+#include "sudoku_arity.h"
 #include "sthread.h"
 
 using namespace std;
@@ -71,9 +71,13 @@ void *work(void* args) {
 	}
 	
 	
-	Dance a(p);
+	Arity a(p);
 	
-	if (a.solve()) {
+	if (a.solve(0)) {
+		
+		if (!a.solved()){
+		  	assert(0);
+		}
 		
 		puzzle_t *result = a.get_result();
 		

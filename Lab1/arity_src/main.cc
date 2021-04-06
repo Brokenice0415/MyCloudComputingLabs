@@ -6,7 +6,7 @@
 
 #include <pthread.h>
 
-#include "sudoku.h"
+#include "sudoku_arity.h"
 #include "pool.h"
 #include "sthread.h"
 

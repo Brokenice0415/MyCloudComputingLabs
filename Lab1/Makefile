@@ -1,13 +1,18 @@
 CC 		  = g++
-CXXFLAGS += -std=c++11 -O2 -g -pthread
+FLAGS += -std=c++11 -O2 -g -pthread
 
-CXXSRC 	 += src/
+SRC 	 += src/
+ARITYSRC += arity_src/
 
 all: sudoku_solve
 
-sudoku_solve: $(CXXSRC)*.cc
-	$(CC) $(CXXFLAGS) -o $@ $^
+sudoku_solve: $(SRC)*.cc
+	$(CC) $(FLAGS) -o $@ $^
+
+sudoku_solve_arity : $(ARITYSRC)*.cc
+	$(CC) $(FLAGS) -o $@ $^
 
 .PHONY: clean
 clean:
 	rm -rf ./sudoku_solve
+	rm -rf ./sudoku_solve_arity

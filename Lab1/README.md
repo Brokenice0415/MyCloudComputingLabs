@@ -2,7 +2,7 @@
 
 Our team have managed to finish **all** implementation requirements. 
 
-The **algorithm** we choose is **min_arity** .
+The **algorithm** we choose is **dance_links** .
 
 ## Structure
 
@@ -17,7 +17,7 @@ The **algorithm** we choose is **min_arity** .
 │   ├── sthread.h
 │   ├── sudoku_arity.cc 		# entity to solve sudoku problems
 │   └── sudoku_arity.h
-├── v1						# last version code
+├── src						# code which use arity algorithm
 │   ├── main.cc
 │   ├── pool.cc 				# threadpool
 │   ├── pool.h
@@ -42,49 +42,42 @@ make
 
 Then you will get `sudoku_solve` by which you can solve sudoku problems.
 
+We provide `-t` `-m` `-M` `-q` commands to control the performance of program
+
+- -t :	enable program to print information of running time
+- -m :  set the thread pool's **min** alive thread number
+- -M :  set the thread pool's **max** alive thread number
+- -q :   set the thread pool's **max** tasks waiting on queue
+
 ### Example input
 
 ```shell
 >./sudoku_solve
-./test/test1000
-./test/test100
+./test/test1
+693784512487512936125963874932651487568247391741398625319475268856129743274836159
+./test/test1
+693784512487512936125963874932651487568247391741398625319475268856129743274836159
 ```
 
 Then you would get your result in file `solved` , in which all your need would be placed **in the same order** as which you have typed in.
 
-## Modified 2021 Mar
-
-The sudoku results would be output **on Shell** instead of the file `solved` .
-
-Provided that you insist to get sudoku results in file `solved`, locate code in `src/sthread.cc` line 79
-
-```c++
-
-	FILE *fp = fopen(output, "a+");
-
-	fprintf(fp, "%s\r\n", result->p);
-	
-	fclose(fp);
-	
-	/*
-	printf("%s\r\n", result->p);		//annotate this line and disannotate lines above
-	*/
-
+```shell
+>./sudoku_solve -t -m 10 -M 20 -q 100
+./test/test1
+0.000931 sec
+693784512487512936125963874932651487568247391741398625319475268856129743274836159
 ```
-Then you can run `make` again to recompile all codes.
 
-## Modified 2021 Apr
+In this example, we set the thread pool with **10** min alive threads, **20** max alive threads and at most **100** tasks waiting on queue, we use `-t` to enable program to print `0.000931 sec` as well
 
-**ACCELERATE 3 TIMES FASTER THAN BEFORE**
+## Contrast
 
-The the places where origin sudoku problems are **would be replaced by **solutions we get.
+The code in `./arity_src`  performs the same with that in `./src` except the algorithm it uses is **min_arity**
 
-**For example**
+You can type  command below to compile it
 
-You type in `./test100`
+```shell
+> make sudoku_solve_arity
+```
 
-Then after the program processing, you would get your solutions **not only** on screen **but also** in `./test100`, **all zeros would be filled by correct solution numbers**
-
-
-
-You can get the code in **last** version in fold `v1`
+Then everything is the same with all above, you can compare the differences brought by two different algorithm in running time.
