@@ -1,5 +1,5 @@
-#ifndef __CONFIG_HPP__
-#define __CONFIG_HPP__
+#ifndef __CONFIG_H__
+#define __CONFIG_H__
 
 #include <iostream>
 #include <fstream>
@@ -28,6 +28,8 @@ class Config {
         IP coor;
         vector<IP> part;
         
+        Config () {};
+        
         Config (string path) {
             get_config(path);
         }
@@ -41,7 +43,7 @@ class Config {
             }
             string tmp;
             while(getline(fin, tmp)) {
-                cout<<tmp<<endl;
+                //cout<<tmp<<endl;
                 if(tmp[0] == '!') {
                     continue;
                 }
@@ -49,7 +51,7 @@ class Config {
                 string param = tmp.substr(0, pos);
                 string value = tmp.substr(pos+1, tmp.length()-pos-1);
                 if(param == "mode") {
-                    if(value == "coordinator") {
+                    if(value[0] == 'c') {
                         mode = COORDINATOR;
                     } else {
                         mode = PARTICIPANT;

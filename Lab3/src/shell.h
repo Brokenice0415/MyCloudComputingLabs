@@ -1,5 +1,5 @@
-#ifndef __SHELL_HPP__
-#define __SHELL_HPP__
+#ifndef __SHELL_H__
+#define __SHELL_H__
 
 #include <iostream>
 #include <vector>
@@ -21,7 +21,7 @@ void do_shell() {
 void eval(string cmdline) {
     if(cmdline.length() == 0) return;
     size_t pos = cmdline.find(" ");
-    //if(pos == cmdline.npos) {cout<<"!!ERROR:\tNEED RARAM"<<endl;return;}
+    if(pos == cmdline.npos) {cout<<"!!ERROR:\tNEED RARAM"<<endl;return;}
     string cmd = cmdline.substr(0, pos);
     vector<string> param;
     size_t lpos = pos;

@@ -1,5 +1,5 @@
-#ifndef __MYMAP_HPP__
-#define __MYMAP_HPP__
+#ifndef __MYMAP_H__
+#define __MYMAP_H__
 
 #include <iostream>
 #include <map>
@@ -18,6 +18,7 @@ class MyMap {
                 m[key] = value;
             }
         }
+        
         string get(string key) {
             string ret = "nnil";
             if(m.count(key) != 0) {
@@ -25,6 +26,7 @@ class MyMap {
             }
             return ret;
         }
+        
         bool del(string key) {
             if(m.count(key) == 0) {
                 return false;
