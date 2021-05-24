@@ -28,7 +28,7 @@ class client_socket {
     		connect_remote(ip, port);
     	}
     	
-        void connect_remote(string ip, int port) {
+        bool connect_remote(string ip, int port) {
             memset(&addr, 0, sizeof(addr));
 			inet_aton(ip.c_str(), &server_addr);
             addr.sin_family = AF_INET;
@@ -36,15 +36,16 @@ class client_socket {
             addr.sin_port = htons(port);
             
             if((sockfd = socket(AF_INET,SOCK_STREAM,0))<0){
-            	printf("socket create error\n");
-            	return;
+            	//printf("socket create error\n");
+            	return false;
             }
             
             if(connect(sockfd, (const struct sockaddr*)&addr, sizeof(addr))<0){
-            	printf("connect error\n");
-            	return;
+            	//printf("connect error\n");
+            	return false;
             }
-            printf("connect to server %s\n", inet_ntoa(addr.sin_addr));
+            //printf("connect to server %s\n", inet_ntoa(addr.sin_addr));
+            return true;
         }
 
         void send_rpc (string msg) {
