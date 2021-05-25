@@ -51,7 +51,7 @@ class client_socket {
         void send_rpc (string msg) {
             int l = msg.length(); 
        		int ret;
-            while((ret = send(sockfd, msg.c_str(), l, 0)) < l) {
+            if((ret = send(sockfd, msg.c_str(), l, 0)) < l) {
             	msg = msg.substr(ret, l-ret);
             	l -= ret;
             	//printf("ret: %d\n", ret);
@@ -135,7 +135,7 @@ class server_socket {
         void send_rpc (int new_sockfd, string msg) {
        		int l = msg.length(); 
        		int ret;
-            while((ret = send(new_sockfd, msg.c_str(), l, 0)) < l) {
+            if((ret = send(new_sockfd, msg.c_str(), l, 0)) < l) {
             	msg = msg.substr(ret, l-ret);
             	l -= ret;
             	//printf("ret: %d\n", ret);
@@ -148,3 +148,4 @@ class server_socket {
 };
 
 #endif
+
