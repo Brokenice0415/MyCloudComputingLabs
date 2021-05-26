@@ -3,6 +3,7 @@
 
 #include <unistd.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <cstring>
@@ -18,13 +19,17 @@ class client_socket {
         struct sockaddr_in addr;
         struct in_addr server_addr;
         char buf[BUFSIZ];
+        fd_set fds;
+        timeval timeout;
 
     public:
     	client_socket (){
     		memset(&addr, 0, sizeof(addr));
+    		timeout = {1, 0};
     	}
     	
     	client_socket (string ip, int port){
+    		timeout = {1, 0};
     		connect_remote(ip, port);
     	}
     	
@@ -34,6 +39,7 @@ class client_socket {
             addr.sin_family = AF_INET;
             addr.sin_addr = server_addr;
             addr.sin_port = htons(port);
+           
             
             if((sockfd = socket(AF_INET,SOCK_STREAM,0))<0){
             	//printf("socket create error\n");
@@ -61,8 +67,18 @@ class client_socket {
         string rcv_rpc () {
         	string ret = "";
             int rest;
-            if((rest = recv(sockfd, buf, BUFSIZ, 0)) > 0){
-            	ret += string(buf).substr(0, rest);
+            
+            FD_ZERO(&fds);
+            FD_SET(sockfd, &fds);
+            
+            int res = select(sockfd+1, &fds, NULL, NULL, &timeout);
+            if(res > 0){
+            	if(FD_ISSET(sockfd, &fds)){
+            		if((rest = recv(sockfd, buf, BUFSIZ, 0)) > 0){
+				    	ret += string(buf).substr(0, rest);
+				    }
+            	}
+		        
             }
             return ret;
         }
@@ -125,16 +141,18 @@ class server_socket {
         string rcv_rpc (int new_sockfd) {
             string ret = "";
             int rest;
-            if((rest = recv(new_sockfd, buf, BUFSIZ, 0)) > 0){
-            	//printf("%d\n", rest);
-            	ret += string(buf).substr(0, rest);
-            }
+		    if((rest = recv(new_sockfd, buf, BUFSIZ, 0)) > 0){
+		    	//printf("%d\n", rest);
+		    	ret += string(buf).substr(0, rest);
+		    }
             return ret;
         }
 
         void send_rpc (int new_sockfd, string msg) {
        		int l = msg.length(); 
        		int ret;
+       		
+       		
             if((ret = send(new_sockfd, msg.c_str(), l, 0)) < l) {
             	msg = msg.substr(ret, l-ret);
             	l -= ret;

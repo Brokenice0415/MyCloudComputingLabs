@@ -3,11 +3,13 @@
 #include "MyMap.h"
 #include "socket.h"
 
+#include <pthread.h>
+#include <semaphore.h>
 
 /*
  * two-phase waiting time limit /ms
  */
-#define TIMEOUT 300
+int TIMEOUT = 300;
 
 
 using namespace std;
@@ -30,6 +32,14 @@ void server_work(int i){
 	while(1){
 		int fd = server.accept_remote();
 		cout<<"receive new connect\n";
+		
+		/*
+		 *  the code logic of receive needs to be polished
+		 *	- if timeout in the period of response to "PRE"
+		 *	- the state would be in a wrong place
+		 */
+		
+		
 		while(1){
 		
 			
@@ -47,6 +57,9 @@ void server_work(int i){
 			}
 			*/
 			
+			cout<<"fall asleep\n";
+			sleep(10);
+			cout<<"recover\n";
 
 			/*
 			 * do two-phase commit 
@@ -63,12 +76,21 @@ void server_work(int i){
 				continue;
 			}
 			/**/
+			
+			
 
 			/*
 			 * handle cmd
 			 */
 			msg = server.rcv_rpc(fd);
 			cmd = msg_hander.get_array(msg);
+			
+			/*
+			cout<<"fall asleep\n";
+			sleep(10);
+			cout<<"recover\n";
+			*/
+			
 			 
 			if(cmd[0] == "SET"){
 				string value = *(cmd.begin() + 2);
@@ -92,7 +114,11 @@ void server_work(int i){
 				server.send_rpc(fd, msg_hander.set_int(del_count));
 			}
 			/**/
-			
+			cout<<"done\n";
+			cmd = myMap->get("asd");
+			for(vector<string>::iterator it = cmd.begin(); it != cmd.end(); it++) {
+				cout<<*it<<endl;
+			}
 		}
 	}
 
@@ -117,7 +143,7 @@ int main(int argc, char* argv[]) {
 				config.part.erase(config.part.begin() + i);
 				i--;
 				part_n--;
-			}else{
+			}else{				
 				clients[i].send_rpc(msg_hander.set_array(vector<string>(1, "Hello!")));
 			}
 		}
@@ -137,21 +163,26 @@ int main(int argc, char* argv[]) {
 		 *  2. if receiving more than half of "ACK", send command to all participant
 		 *  3. if TIMEOUT_2 semaphore, send "ABORT"
 		 */
+		 
 		 int ack_count = 0;
 		 for(int i = 0; i < part_n; i ++) {
 			 clients[i].send_rpc(msg_hander.set_array(vector<string>(1, "PRE")));
-			 //cout<<"pre\n";
+			 cout<<"pre\n";
 			 string msg = clients[i].rcv_rpc();
-			 //cout<<"rcv\n";
+			 cout<<"rcv\n";
 			 string cmd = msg_hander.get_str(msg);
+			 
 			 if(cmd == "ACK") {
 			 	ack_count ++;
 			 }
-			 //cout<<"commit\n";
+			 /*
+			  * else cmd == "" means recv timeout 
+			  */
 		}
-		//cout<<"ack count: "<<ack_count<<endl;
+		cout<<"ack count: "<<ack_count<<endl;
 		
 		if (2*ack_count > part_n){
+			cout<<"commit\n";
 			/*
 			 *  if "SET" cmd
 			 */
@@ -162,13 +193,16 @@ int main(int argc, char* argv[]) {
 		 	
 			for(int i = 0; i < part_n; i ++) {
 				clients[i].send_rpc(msg_hander.set_array(tmp));
+				//cout<<i<<" have sent\n";
 				string msg = clients[i].rcv_rpc();
+				//cout<<i<<" have received\n";
 				/*
 				 * transmit msg to shell client with out any action
 				 */
 			}
 		}
 		else{
+			cout<<"abort\n";
 			for(int i = 0; i < part_n; i ++) {
 				clients[i].send_rpc(msg_hander.set_array(vector<string>(1, "ABORT")));
 			 	clients[i].rcv_rpc();

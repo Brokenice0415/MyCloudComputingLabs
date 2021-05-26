@@ -34,6 +34,7 @@ class MyMap {
             	lpos = pos;
             	pos = v.find(' ', lpos+1);
             }
+            ret.push_back(v.substr(lpos+1, v.length()-lpos-1));
             return ret;
         }
         
