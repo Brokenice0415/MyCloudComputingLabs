@@ -25,11 +25,11 @@ class client_socket {
     public:
     	client_socket (){
     		memset(&addr, 0, sizeof(addr));
-    		timeout = {1, 0};
+    		timeout = {5, 0};
     	}
     	
     	client_socket (string ip, int port){
-    		timeout = {1, 0};
+    		timeout = {5, 0};
     		connect_remote(ip, port);
     	}
     	
@@ -78,7 +78,9 @@ class client_socket {
 				    	ret += string(buf).substr(0, rest);
 				    }
             	}
-		        
+            }
+            else if (res < 0) {
+            	ret = "nil";
             }
             return ret;
         }
@@ -95,13 +97,17 @@ class server_socket {
         uint16_t port;
         struct sockaddr_in addr;
         char buf[BUFSIZ];
+        fd_set fds;
+        timeval timeout;
     
     public:
     	server_socket () {
     		memset(&addr, 0, sizeof(addr));
+    		timeout = {0, 0};
     	}
     	
     	server_socket (int port) {
+    		timeout = {0, 0};
     		listen_remote (port);
     	}
     	
@@ -117,18 +123,18 @@ class server_socket {
             
             int on = 1;
             if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0){
-            	printf("set error\n");
+            	//printf("set error\n");
             	return;
             }
             if(bind(sockfd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
-            	printf("bind error\n");
+            	//printf("bind error\n");
             	return;
             }
             if(listen(sockfd, 1)<0){
-            	printf("listen error\n");
+            	//printf("listen error\n");
             	return;
             }
-            printf("listen at %s:%d ...\n", inet_ntoa(addr.sin_addr), port);
+            //printf("listen at %s:%d ...\n", inet_ntoa(addr.sin_addr), port);
         }
         
         int accept_remote() {
@@ -141,10 +147,11 @@ class server_socket {
         string rcv_rpc (int new_sockfd) {
             string ret = "";
             int rest;
-		    if((rest = recv(new_sockfd, buf, BUFSIZ, 0)) > 0){
-		    	//printf("%d\n", rest);
+
+    		if((rest = recv(new_sockfd, buf, BUFSIZ, 0)) > 0){
 		    	ret += string(buf).substr(0, rest);
 		    }
+
             return ret;
         }
 
