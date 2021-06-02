@@ -1,6 +1,6 @@
 #include "util/config.h"
 #include "util/message.h"
-#include "mymap.h"
+#include "mystore.h"
 #include "socket.h"
 
 #include <stdlib.h>
@@ -20,7 +20,7 @@ Message msg_hander;
 
 void server_work(int i){
 	IP part = config.part[i];
-	MyMap *myMap = new MyMap();
+	MyStore *myStore = new MyStore();
 	vector<string> cmd;
 	server_socket server(part.port); // start listen
 	/*
@@ -111,19 +111,19 @@ void server_work(int i){
 					for(vector<string>::iterator it = cmd.begin() + 3; it != cmd.end(); it ++) {
 						value += " " + *it;
 					}
-					myMap->set(cmd[1], value);
+					myStore->set(cmd[1], value);
 					server.send_rpc(fd, msg_hander.set_success("OK"));
 				}
 				else if(cmd[0] == "GET"){
 					phase2 = false;
-					vector<string> value = myMap->get(cmd[1]);
+					vector<string> value = myStore->get(cmd[1]);
 					server.send_rpc(fd, msg_hander.set_array(value));
 				}
 				else if (cmd[0] == "DEL"){
 					phase2 = false;
 					int del_count = 0;
 					for(vector<string>::iterator it = cmd.begin()+1; it != cmd.end(); it ++) {
-						if(myMap->del(*it)) {
+						if(myStore->del(*it)) {
 							del_count ++;
 						}
 					}
@@ -151,7 +151,7 @@ void server_work(int i){
 				
 				//cout<<"done\n";
 				/*
-				cmd = myMap->get("asd");
+				cmd = myStore->get("asd");
 				for(vector<string>::iterator it = cmd.begin(); it != cmd.end(); it++) {
 					cout<<*it<<endl;
 				}

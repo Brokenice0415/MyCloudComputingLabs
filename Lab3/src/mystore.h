@@ -8,7 +8,7 @@
 
 using namespace std;
 
-class MyMap {
+class MyStore {
     public:
         map<string, string> m;
 
