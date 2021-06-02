@@ -5,6 +5,7 @@
 We will try our best to satisfy as many requirements as we can...
 
 - Basic Version OK
+- Advanced Version OK
 
 
 
@@ -12,13 +13,23 @@ We will try our best to satisfy as many requirements as we can...
 
 
 
+## Environment
+
+Ubuntu 20.04
+
+>  In theory, we satisfy any OS with Linux-like core.
+
+
+
 ## Compile
 
-Run `make` command in Linux shell to compile our program.
+Run `make` command in shell to compile our program.
 
 
 
 ## Server Configuration
+
+### Start Server
 
 Run the command below to setup coordinator and participant server
 
@@ -37,6 +48,24 @@ You should run these command to setup your coordinator and participant servers
 # setup coordinator server
 > ./kvstore2pcsystem --config ./config/coordinator.conf
 ```
+
+### Stop Server
+
+We set a process background to run servers when running `./kvstore2pcsystem`. If you want to kill any server, type these command below.
+
+```shell
+# show network status of process running on port *8* or pid = *8*
+# we just focus on the process running on port *8* to find which server process runs background
+> netstat -tunlp|grep 8
+tcp        0      0 0.0.0.0:8001            0.0.0.0:*               LISTEN      4818/./kvstore2pcsystem 
+tcp        0      0 0.0.0.0:8002            0.0.0.0:*               LISTEN      4811/./kvstore2pcsystem 
+
+# then we know the pid of server on port 8001 is 4818, the pid of server on port 8002 is 4811
+# use kill [pid] to stop server
+> kill 4818
+```
+
+
 
 
 

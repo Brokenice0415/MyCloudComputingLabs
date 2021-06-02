@@ -10,7 +10,7 @@ vector<string> eval(string cmdline) {
 	vector<string> param;
     if(cmdline.length() == 0) return param;
     size_t pos = cmdline.find(" ");
-    if(pos == cmdline.npos) {cout<<"!!ERROR:\tNEED RARAM"<<endl;return param;}
+    if(pos == cmdline.npos) {/*cout<<"!!ERROR:\tNEED RARAM"<<endl;*/return param;}
     string cmd = cmdline.substr(0, pos);
     param.push_back(cmd);
     size_t lpos = pos;
@@ -19,10 +19,10 @@ vector<string> eval(string cmdline) {
 
     if(cmd == "SET") {
         pos = cmdline.find("\"");
-        if(pos == cmdline.npos) {cout<<"!!ERROR:\tERROR KV FORMAT"<<endl;return vector<string>(0);}
+        if(pos == cmdline.npos) {/*cout<<"!!ERROR:\tERROR KV FORMAT"<<endl;*/return vector<string>(0);}
         lpos = pos;
         pos = cmdline.find("\"", pos+1);
-        if(pos == cmdline.npos) {cout<<"!!ERROR:\tERROR KV FORMAT"<<endl;return vector<string>(0);}
+        if(pos == cmdline.npos) {/*cout<<"!!ERROR:\tERROR KV FORMAT"<<endl;*/return vector<string>(0);}
 
         string value = cmdline.substr(lpos+1, pos-lpos-1);
 
@@ -76,6 +76,7 @@ int main(int argc, char* argv[]) {
     string cmdline;
     vector<string> cmd;
     client_socket client;
+    client.set_timeout(10);
     while(1) {
         getline(cin, cmdline);
         cmd = eval(cmdline);

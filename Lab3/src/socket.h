@@ -21,16 +21,21 @@ class client_socket {
         char buf[BUFSIZ];
         fd_set fds;
         timeval timeout;
+        int my_timeout;
 
     public:
     	client_socket (){
     		memset(&addr, 0, sizeof(addr));
-    		timeout = {5, 0};
+    		my_timeout = 1;
     	}
     	
     	client_socket (string ip, int port){
-    		timeout = {5, 0};
+    		my_timeout = 1;
     		connect_remote(ip, port);
+    	}
+    	
+    	void set_timeout(int t) {
+    		my_timeout = t;
     	}
     	
         bool connect_remote(string ip, int port) {
@@ -71,6 +76,7 @@ class client_socket {
             FD_ZERO(&fds);
             FD_SET(sockfd, &fds);
             
+            timeout = {my_timeout, 0};
             int res = select(sockfd+1, &fds, NULL, NULL, &timeout);
             if(res > 0){
             	if(FD_ISSET(sockfd, &fds)){
@@ -97,18 +103,23 @@ class server_socket {
         uint16_t port;
         struct sockaddr_in addr;
         char buf[BUFSIZ];
-        fd_set fds;
+        //fd_set fds;
         timeval timeout;
+        int my_timeout;
     
     public:
     	server_socket () {
     		memset(&addr, 0, sizeof(addr));
-    		timeout = {0, 0};
+    		my_timeout = 1;
     	}
     	
     	server_socket (int port) {
-    		timeout = {0, 0};
+    		my_timeout = 1;
     		listen_remote (port);
+    	}
+    	
+    	void set_timeout(int t) {
+    		my_timeout = t;
     	}
     	
         void listen_remote (int port) {
@@ -145,13 +156,27 @@ class server_socket {
         }
 
         string rcv_rpc (int new_sockfd) {
-            string ret = "";
+        	string ret = "";
             int rest;
-
-    		if((rest = recv(new_sockfd, buf, BUFSIZ, 0)) > 0){
-		    	ret += string(buf).substr(0, rest);
-		    }
-
+            fd_set fds;
+            
+            FD_ZERO(&fds);
+            FD_SET(new_sockfd, &fds);
+            
+            timeout = {my_timeout, 0};
+            
+            int res = select(new_sockfd+1, &fds, NULL, NULL, &timeout);
+            //cout<<"res: "<<res<<endl;
+            if(res > 0){
+            	if(FD_ISSET(new_sockfd, &fds)){
+            		if((rest = recv(new_sockfd, buf, BUFSIZ, 0)) > 0){
+				    	ret += string(buf).substr(0, rest);
+				    }
+            	}
+            }
+            else if (res < 0) {
+            	ret = "nil";
+            }
             return ret;
         }
 

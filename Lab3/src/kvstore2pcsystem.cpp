@@ -3,8 +3,7 @@
 #include "mymap.h"
 #include "socket.h"
 
-#include <pthread.h>
-#include <semaphore.h>
+#include <stdlib.h>
 
 /*
  * two-phase waiting time limit /ms
@@ -65,9 +64,10 @@ void server_work(int i){
 			
 			/*
 			cout<<"fall asleep\n";
-			sleep(10);
+			sleep(rand()%2);
 			cout<<"recover\n";
 			*/
+			
 			if (phase2 == false) {
 				/*
 				 * do two-phase commit 
@@ -94,9 +94,10 @@ void server_work(int i){
 				
 				/*
 				cout<<"fall asleep\n";
-				sleep(10);
+				sleep(rand()%3);
 				cout<<"recover\n";
 				*/
+				
 				/*
 				msg = server.rcv_rpc(fd);
 				cmd = msg_hander.get_array(msg);
@@ -135,10 +136,15 @@ void server_work(int i){
 				else if(cmd[0] == "ABORT") {
 					phase2 = false;
 					server.send_rpc(fd, msg_hander.set_str("ACK"));
-					continue;
+					//break;
 				}
 				else {
-					//continue;
+					/*
+					 * if receive another phase1 command
+					 * the coordinator may be restarted
+					 * drop the work before and back to phase1
+					 */
+					phase2 = false;
 					server.send_rpc(fd, msg_hander.set_error("ERROR"));
 				}
 				/**/
@@ -160,30 +166,16 @@ int main(int argc, char* argv[]) {
 	if(argc == 3) {
 		config.get_config(string(argv[2]));
 	}else return 0;
+	
 	int pid = fork();
 	if(pid != 0) exit(0);
+	
 	part_n = config.part.size();
 	if(config.mode == PARTICIPANT){
 		server_work(0);
 	}else{
 		vector<client_socket> clients(part_n);
-		/*
-		* initial participant connect
-		*/
-		for(int i = 0; i < part_n; i ++) {
-			if(!clients[i].connect_remote(config.part[i].ip, config.part[i].port)) {
-				//cout<<"connect to "<<config.part[i].ip<<":"<<config.part[i].port<<" failed\n";
-				clients.erase(clients.begin() + i);
-				config.part.erase(config.part.begin() + i);
-				i--;
-				part_n--;
-			}
-			/*
-			else{				
-				clients[i].send_rpc(msg_hander.set_array(vector<string>(1, "Hello!")));
-			}
-			*/
-		}
+		
 		
 		/*
 		 *  new thread to :
@@ -204,11 +196,30 @@ int main(int argc, char* argv[]) {
 		 while(1){
 		 	 int shell_fd = server.accept_remote();
 		 	 string shell_msg = server.rcv_rpc(shell_fd);
+		 	 //cout<<"shell: "<<shell_msg<<endl;
+		 	 
+		 	 /*
+			  * initial participant connect
+			  */
+			  for(int i = 0; i < part_n; i ++) {
+			  	  if(!clients[i].connect_remote(config.part[i].ip, config.part[i].port)) {
+					  //cout<<"connect to "<<config.part[i].ip<<":"<<config.part[i].port<<" failed\n";
+					  clients.erase(clients.begin() + i);
+					  config.part.erase(config.part.begin() + i);
+					  i--;
+					  part_n--;
+				  }
+				  /*
+				  else{				
+					  clients[i].send_rpc(msg_hander.set_array(vector<string>(1, "Hello!")));
+				  }
+				  */
+			  }
 		 
 		 	 /*
 		 	  * do execute shell cmd while not done
 		 	  */
-		 	 while (1) {
+		 	 //while (1) {
 				 int ack_count = 0;
 				 for(int i = 0; i < part_n; i ++) {
 					 clients[i].send_rpc(msg_hander.set_array(vector<string>(1, "PRE")));
@@ -224,8 +235,9 @@ int main(int argc, char* argv[]) {
 					 	//cout<<"disconnect\n";
 					 	clients.erase(clients.begin() + i);
 						config.part.erase(config.part.begin() + i);
-						i--;
+						//i--;
 						part_n--;
+						continue;
 					 }
 					 /*
 					  * else msg == "" means recv timeout 
@@ -271,7 +283,7 @@ int main(int argc, char* argv[]) {
 					 * end execute while
 					 */
 					close(shell_fd);
-					break;
+					//break;
 				}
 				else{
 					//cout<<"abort\n";
@@ -293,6 +305,10 @@ int main(int argc, char* argv[]) {
 						}
 					}
 				}
+				
+			//}
+			for(int i = 0; i < part_n; i ++) {
+				clients[i].close_socket();
 			}
 
 		}
