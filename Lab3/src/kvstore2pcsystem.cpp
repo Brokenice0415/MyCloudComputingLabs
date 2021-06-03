@@ -167,8 +167,10 @@ int main(int argc, char* argv[]) {
 		config.get_config(string(argv[2]));
 	}else return 0;
 	
+	/*
 	int pid = fork();
 	if(pid != 0) exit(0);
+	*/
 	
 	part_n = config.part.size();
 	if(config.mode == PARTICIPANT){
@@ -249,7 +251,7 @@ int main(int argc, char* argv[]) {
 				if (ack_count == part_n){
 					//cout<<"commit\n";
 					
-				 	string shell_ret;
+				 	string shell_ret = "";
 					for(int i = 0; i < part_n; i ++) {
 						clients[i].send_rpc(shell_msg);
 						//cout<<i<<" have sent\n";
@@ -273,6 +275,7 @@ int main(int argc, char* argv[]) {
 						//cout<<i<<" have received "<<msg<<endl;
 						
 					}
+					if(shell_ret == "") shell_ret = "-ERROR\r\n";
 					/*
 					 * transmit the newest msg to shell client
 					 */
