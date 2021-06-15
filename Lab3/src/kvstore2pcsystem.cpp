@@ -5,11 +5,6 @@
 
 #include <stdlib.h>
 
-/*
- * two-phase waiting time limit /ms
- */
-int TIMEOUT = 300;
-
 
 using namespace std;
 
